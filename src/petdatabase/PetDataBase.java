@@ -5,12 +5,11 @@
  * Due: 06-July-2025
  *
  * Program Description:
- * This program allows a user to add and view pet information (name and age).
- * The user can add multiple pets and then view them in a formatted table.
+ * This version includes searching for pets by name and by age.
+ * Users can now filter and view pets based on specific criteria entered at runtime.
  *
  * Sources:
  * Bruegge, B., & Dutoit, A. H. (2010). Object-oriented software engineering: Using UML, patterns, and Java (3rd ed.). Prentice Hall.
- * 
  */
 
 package petdatabase;
@@ -19,63 +18,69 @@ import java.util.ArrayList;
 import java.util.Scanner;
 
 public class PetDataBase {
-    
-    // This inner class represents a Pet object with name and age
+
+    // Inner class to represent a Pet object
     static class Pet {
         String name;
         int age;
 
-        // Constructor to create a new Pet object
         Pet(String name, int age) {
             this.name = name;
             this.age = age;
         }
     }
 
-    // This ArrayList stores all the pets the user adds
+    // List to store all pets
     private static ArrayList<Pet> petList = new ArrayList<>();
 
     public static void main(String[] args) {
-        Scanner scanner = new Scanner(System.in); // Scanner to read user input
+        Scanner scanner = new Scanner(System.in);
         boolean running = true;
 
         System.out.println("Pet Database Program");
 
-        // Main program loop: keeps running until user chooses to exit
         while (running) {
-            printMenu(); // Display the menu options
+            printMenu();
             System.out.print("\nYour choice: ");
-            int choice = scanner.nextInt(); // Read user menu choice
-            scanner.nextLine(); // Clear the buffer
+            int choice = scanner.nextInt();
+            scanner.nextLine(); // clear input buffer
 
             switch (choice) {
                 case 1:
-                    viewPets(); // Option to view pets
+                    viewPets();
                     break;
                 case 2:
-                    addPets(scanner); // Option to add pets
+                    addPets(scanner);
                     break;
                 case 3:
-                    running = false; // Exit the program
+                    searchByName(scanner);
+                    break;
+                case 4:
+                    searchByAge(scanner);
+                    break;
+                case 5:
+                    running = false;
                     System.out.println("\nGoodbye!");
                     break;
                 default:
-                    System.out.println("Invalid choice. Please try again.");
+                    System.out.println("\nInvalid choice. Please try again.");
             }
         }
 
-        scanner.close(); // Close scanner when program ends
+        scanner.close();
     }
 
-    // Prints the main menu options
+    // Menu options updated to include search features
     public static void printMenu() {
         System.out.println("\nWhat would you like to do?\n");
         System.out.println("1) View all pets");
         System.out.println("2) Add more pets");
-        System.out.println("3) Exit program");
+        System.out.println("3) Search pets by name");
+        System.out.println("4) Search pets by age");
+        System.out.println("5) Exit program");
     }
 
-    // This method allows the user to add new pets until they type "done"
+    // Allows the user to add pets
     public static void addPets(Scanner scanner) {
         int addedCount = 0;
 
@@ -83,7 +88,6 @@ public class PetDataBase {
             System.out.print("\nAdd pet (name, age): ");
             String input = scanner.nextLine();
 
-            // If the user types "done", we stop adding pets
             if (input.equalsIgnoreCase("done")) {
                 break;
             }
@@ -93,7 +97,7 @@ public class PetDataBase {
                 String name = parts[0];
                 try {
                     int age = Integer.parseInt(parts[1]);
-                    petList.add(new Pet(name, age)); // Add new pet to list
+                    petList.add(new Pet(name, age));
                     addedCount++;
                 } catch (NumberFormatException e) {
                     System.out.println("\nInvalid age format. Please enter an integer.");
@@ -103,10 +107,10 @@ public class PetDataBase {
             }
         }
 
-        System.out.println("\n"+addedCount + " pets added.");
+        System.out.println("\n" + addedCount + " pets added.");
     }
 
-    // This method prints the formatted table of all pets
+    // Displays the list of all pets
     public static void viewPets() {
         System.out.println("\n+----------------------+");
         System.out.println("| ID | NAME      | AGE |");
@@ -114,11 +118,59 @@ public class PetDataBase {
 
         for (int i = 0; i < petList.size(); i++) {
             Pet pet = petList.get(i);
-            // Print using formatted string (ID, name, age)
             System.out.printf("| %2d | %-10s| %3d |\n", i, pet.name, pet.age);
         }
 
         System.out.println("+----------------------+\n");
         System.out.println(petList.size() + " rows in set.");
+    }
+
+    // Search pets by name (case-insensitive)
+    public static void searchByName(Scanner scanner) {
+        System.out.print("\nEnter a name to search: ");
+        String nameSearch = scanner.nextLine().toLowerCase(); // lower case for case-insensitive search
+        int count = 0;
+
+        System.out.println("\n+----------------------+");
+        System.out.println("| ID | NAME      | AGE |");
+        System.out.println("+----------------------+");
+
+        for (int i = 0; i < petList.size(); i++) {
+            Pet pet = petList.get(i);
+            if (pet.name.toLowerCase().equals(nameSearch)) {
+                System.out.printf("| %2d | %-10s| %3d |\n", i, pet.name, pet.age);
+                count++;
+            }
+        }
+
+        System.out.println("+----------------------+\n");
+        System.out.println(count + " rows in set.");
+    }
+
+    // Search pets by age
+    public static void searchByAge(Scanner scanner) {
+        System.out.print("\nEnter age to search: ");
+        try {
+            int ageSearch = Integer.parseInt(scanner.nextLine());
+            int count = 0;
+
+            System.out.println("\n+----------------------+");
+            System.out.println("| ID | NAME      | AGE |");
+            System.out.println("+----------------------+");
+
+            for (int i = 0; i < petList.size(); i++) {
+                Pet pet = petList.get(i);
+                if (pet.age == ageSearch) {
+                    System.out.printf("| %2d | %-10s| %3d |\n", i, pet.name, pet.age);
+                    count++;
+                }
+            }
+
+            System.out.println("+----------------------+\n");
+            System.out.println(count + " rows in set.");
+
+        } catch (NumberFormatException e) {
+            System.out.println("\nInvalid input. Please enter a valid number.");
+        }
     }
 }
