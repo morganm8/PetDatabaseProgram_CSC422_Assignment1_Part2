@@ -5,18 +5,19 @@
  * Due: 06-July-2025
  *
  * Program Description:
- * This final version includes the ability to add, view, search, update, and remove pets.
+ * This version includes the ability to add, view, search, update, and remove pets.
  * Users can now maintain a simple pet database from the command line.
+ * This milestone adds the ability to load and save pet data from a text file.
  *
  * Sources:
  * Bruegge, B., & Dutoit, A. H. (2010). Object-oriented software engineering: Using UML, patterns, and Java (3rd ed.). Prentice Hall.
- * 
  */
 
 package petdatabase;
 
 import java.util.ArrayList;
 import java.util.Scanner;
+import java.io.*; // Needed for reading and writing files
 
 public class PetDataBase {
 
@@ -35,6 +36,9 @@ public class PetDataBase {
     // This list holds all the Pet objects added by the user.
     private static ArrayList<Pet> petList = new ArrayList<>();
 
+    // The name of the file where pet data will be saved and loaded from.
+    private static final String DATA_FILE = "pets.txt";
+
     public static void main(String[] args) {
         // Create a Scanner object to read user input from the console.
         Scanner scanner = new Scanner(System.in);
@@ -47,6 +51,9 @@ public class PetDataBase {
         System.out.println("I certify that this is my own work.\n");
         System.out.println("Pet Database Program");
 
+        // Load pet data from the file at the start of the program.
+        loadFromFile();
+
         // This loop continues to run until the user chooses to exit.
         while (running) {
             // Display the main menu.
@@ -54,8 +61,7 @@ public class PetDataBase {
 
             // Prompt the user to choose an action from the menu.
             System.out.print("\nYour choice: ");
-            int choice = scanner.nextInt();
-            scanner.nextLine(); // Clear the input buffer.
+            int choice = Integer.parseInt(scanner.nextLine());
 
             // Use a switch statement to determine which method to call based on the user's choice.
             switch (choice) {
@@ -78,12 +84,14 @@ public class PetDataBase {
                     searchByAge(scanner); // Search for pets by age.
                     break;
                 case 7:
-                    running = false; // Exit the program.
+                    // Save pet data to file before exiting.
+                    saveToFile();
                     System.out.println("\nGoodbye!");
+                    running = false; // End the loop.
                     break;
                 default:
                     // Handle any invalid menu choices.
-                    System.out.println("\nInvalid choice. Please try again.");
+                    System.out.println("Invalid choice. Please try again.");
             }
         }
 
@@ -94,7 +102,6 @@ public class PetDataBase {
     // This method displays the list of options that the user can choose from.
     public static void printMenu() {
         System.out.println("\nWhat would you like to do?\n");
-        System.out.println("Type" + " 'done'" + " to exit the loop when entering. updating, or removing your pet data.\n");
         System.out.println("1) View all pets");
         System.out.println("2) Add more pets");
         System.out.println("3) Update an existing pet");
@@ -121,18 +128,18 @@ public class PetDataBase {
             // Split the input into name and age.
             String[] parts = input.split(" ");
             if (parts.length == 2) {
-                String name = parts[0];
                 try {
+                    String name = parts[0];
                     int age = Integer.parseInt(parts[1]); // Convert age to an integer.
                     petList.add(new Pet(name, age)); // Add a new Pet object to the list.
                     addedCount++;
                 } catch (NumberFormatException e) {
                     // Handle input that isn't a valid number.
-                    System.out.println("\nInvalid age. Please enter a whole number.");
+                    System.out.println("Invalid age. Please enter a whole number.");
                 }
             } else {
                 // Handle improperly formatted input.
-                System.out.println("\nInvalid format. Use: name age");
+                System.out.println("Invalid format. Use: name age");
             }
         }
 
@@ -158,16 +165,14 @@ public class PetDataBase {
 
     // This method allows the user to search for pets by their name.
     public static void searchByName(Scanner scanner) {
-        // Prompt the user to enter the name to search for.
         System.out.print("\nEnter a name to search: ");
-        String nameSearch = scanner.nextLine().toLowerCase(); // Convert input to lowercase for case-insensitive comparison.
+        String nameSearch = scanner.nextLine().toLowerCase(); // Case-insensitive search
         int count = 0;
 
         System.out.println("\n+----------------------+");
         System.out.println("| ID | NAME      | AGE |");
         System.out.println("+----------------------+");
 
-        // Loop through the pet list and print matches.
         for (int i = 0; i < petList.size(); i++) {
             Pet pet = petList.get(i);
             if (pet.name.toLowerCase().equals(nameSearch)) {
@@ -182,7 +187,6 @@ public class PetDataBase {
 
     // This method allows the user to search for pets by a specific age.
     public static void searchByAge(Scanner scanner) {
-        // Prompt the user to enter an age to search for.
         System.out.print("\nEnter age to search: ");
         try {
             int ageSearch = Integer.parseInt(scanner.nextLine()); // Convert the input to an integer.
@@ -192,7 +196,6 @@ public class PetDataBase {
             System.out.println("| ID | NAME      | AGE |");
             System.out.println("+----------------------+");
 
-            // Loop through the pet list and print matches.
             for (int i = 0; i < petList.size(); i++) {
                 Pet pet = petList.get(i);
                 if (pet.age == ageSearch) {
@@ -204,8 +207,7 @@ public class PetDataBase {
             System.out.println("+----------------------+\n");
             System.out.println(count + " rows in set.");
         } catch (NumberFormatException e) {
-            // Handle input that isn't a valid number.
-            System.out.println("\nInvalid input. Please enter a valid number.");
+            System.out.println("Invalid input. Please enter a valid number.");
         }
     }
 
@@ -213,14 +215,13 @@ public class PetDataBase {
     public static void updatePet(Scanner scanner) {
         viewPets(); // Display the list of pets to choose from.
 
-        // Prompt the user to enter the ID of the pet to update.
         System.out.print("\nEnter the ID of the pet you want to update: ");
         try {
             int id = Integer.parseInt(scanner.nextLine());
 
             if (id >= 0 && id < petList.size()) {
                 Pet pet = petList.get(id); // Get the selected pet.
-                System.out.print("\nEnter new name and age: \n");
+                System.out.print("Enter new name and age: ");
                 String[] input = scanner.nextLine().split(" ");
 
                 if (input.length == 2) {
@@ -232,17 +233,13 @@ public class PetDataBase {
                     pet.name = newName;
                     pet.age = newAge;
                 } else {
-                    // Handle improper input formatting.
-                    System.out.println("\nInvalid input. Use: name age");
+                    System.out.println("Invalid input. Use: name age");
                 }
             } else {
-                // Handle invalid ID selection.
-                System.out.println("\nInvalid ID.");
+                System.out.println("Invalid ID.");
             }
-
         } catch (NumberFormatException e) {
-            // Handle non-numeric input.
-            System.out.println("\nPlease enter a valid number.");
+            System.out.println("Please enter a valid number.");
         }
     }
 
@@ -250,22 +247,49 @@ public class PetDataBase {
     public static void removePet(Scanner scanner) {
         viewPets(); // Show the current pet list.
 
-        // Prompt the user to select a pet by ID.
         System.out.print("\nEnter the ID of the pet to remove: ");
         try {
             int id = Integer.parseInt(scanner.nextLine());
 
             if (id >= 0 && id < petList.size()) {
                 Pet removed = petList.remove(id); // Remove the selected pet from the list.
-                System.out.printf("\n%s %d is removed.\n", removed.name, removed.age);
+                System.out.printf("%s %d is removed.\n", removed.name, removed.age);
             } else {
-                // Handle invalid ID input.
-                System.out.println("\nInvalid ID.");
+                System.out.println("Invalid ID.");
             }
-
         } catch (NumberFormatException e) {
-            // Handle input that is not a valid number.
-            System.out.println("\nPlease enter a valid number.");
+            System.out.println("Please enter a valid number.");
+        }
+    }
+
+    // This method loads pet data from the text file into the program at startup.
+    public static void loadFromFile() {
+        File file = new File(DATA_FILE);
+        if (file.exists()) {
+            try (Scanner fileScanner = new Scanner(file)) {
+                while (fileScanner.hasNextLine()) {
+                    String line = fileScanner.nextLine();
+                    String[] parts = line.split(" ");
+                    if (parts.length == 2) {
+                        String name = parts[0];
+                        int age = Integer.parseInt(parts[1]);
+                        petList.add(new Pet(name, age));
+                    }
+                }
+            } catch (Exception e) {
+                System.out.println("Error loading pet data from file.");
+            }
+        }
+    }
+
+    // This method saves the current pet list to the text file when the program exits.
+    public static void saveToFile() {
+        try (PrintWriter writer = new PrintWriter(DATA_FILE)) {
+            for (Pet pet : petList) {
+                writer.println(pet.name + " " + pet.age); // Save name and age separated by space.
+            }
+        } catch (IOException e) {
+            System.out.println("Error saving pet data to file.");
         }
     }
 }
